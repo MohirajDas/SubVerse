@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SubVerse - Ultimate Subscription Hub</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+
+    <!-- LOGIN OVERLAY (Mandatory Google Login) -->
+    <div id="loginOverlay" class="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-8 text-center shadow-2xl">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-brand-500/10 text-brand-500 rounded-2xl mb-6 text-2xl font-bold">
+                <i class="fa-solid fa-cube"></i>
+            </div>
+            <h2 class="text-2xl font-bold mb-2 text-white">Welcome to SubVerse</h2>
+            <p class="text-slate-400 text-sm mb-6">Access 30+ premium subscriptions using CC credits stored securely in IndexedDB. Sign in with Google to claim your free <strong class="text-emerald-400">30 CC</strong> sign-up bonus!</p>
+            
+            <button onclick="loginWithGoogle()" class="w-full py-3 px-4 bg-white hover:bg-slate-100 text-slate-900 font-medium rounded-xl transition duration-200 flex items-center justify-center gap-3 shadow-lg">
+                <svg class="w-5 h-5" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.2v3.15C3.18 21.3 7.23 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.2C.44 8.1 0 9.99 0 12s.44 3.9 1.2 5.42l4.08-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.23 0 3.18 2.7 1.2 6.58l4.08 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                </svg>
+                Continue with Google
+            </button>
+        </div>
+    </div>
+
+    <!-- MAIN APP CONTAINER -->
+    <div id="mainApp" class="hidden flex-grow flex flex-col">
+        <!-- Navbar -->
+        <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur sticky top-0 z-40 px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white font-bold">
+                    <i class="fa-solid fa-cube"></i>
+                </div>
+                <span class="text-xl font-bold bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">SubVerse</span>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="bg-slate-900 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-2">
+                    <i class="fa-solid fa-coins text-amber-400"></i>
+                    <span class="text-sm font-semibold text-slate-300"><span id="userCC" class="text-amber-400 text-base font-bold">0</span> CC</span>
+                </div>
+                <div class="flex items-center gap-3 pl-4 border-l border-slate-800">
+                    <img id="userAvatar" src="" alt="Avatar" class="w-9 h-9 rounded-full border border-slate-700 object-cover">
+                    <div class="hidden sm:block text-left">
+                        <div id="userName" class="text-sm font-medium text-white leading-tight">User</div>
+                        <div class="text-xs text-emerald-400 leading-tight">Online (IndexedDB Active)</div>
+                    </div>
+                    <button onclick="logout()" class="ml-2 text-slate-400 hover:text-red-400 transition" title="Logout">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Hero / Daily Reward banner -->
+        <section class="max-w-7xl mx-auto px-6 py-8 w-full">
+            <div class="bg-gradient-to-r from-indigo-900/40 via-purple-900/30 to-slate-900 border border-indigo-500/20 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+                <div>
+                    <span class="bg-indigo-500/10 text-indigo-400 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider border border-indigo-500/20">Daily Rewards Active</span>
+                    <h1 class="text-2xl md:text-3xl font-bold text-white mt-2">Claim Your Daily Visit Bonus!</h1>
+                    <p class="text-slate-400 text-sm mt-1">Visit every day to automatically claim your <strong class="text-amber-400">2.66 CC</strong> daily reward bonus.</p>
+                </div>
+                <div class="bg-slate-900/80 border border-slate-800 px-6 py-4 rounded-xl text-center min-w-[200px]">
+                    <div class="text-xs text-slate-400 mb-1">Status</div>
+                    <div id="rewardStatus" class="text-sm font-bold text-emerald-400 flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-circle-check"></i> 2.66 CC Claimed Today
+                    </div>
+                </div>
+            </div>
+
+            <!-- Subscriptions Heading -->
+            <div class="mt-12 mb-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-xl font-bold text-white">Available Subscriptions (30 Packages)</h2>
+                    <p class="text-sm text-slate-400">Choose your package. All subscriptions come with 1-month validity and downloadable receipts.</p>
+                </div>
+            </div>
+
+            <!-- Subscriptions Grid (30 Items) -->
+            <div id="subscriptionsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                <!-- Injected via JavaScript -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer with Copyright -->
+    <footer class="border-t border-slate-900 bg-slate-950 py-6 text-center text-xs text-slate-500 mt-auto">
+        <p>© 2026 All rights reserved by Mohiraj Das</p>
+    </footer>
+
+    <!-- JS Logic with IndexedDB -->
+    <script>
+        // List of all 30 Subscription Packages
+        const packages = [
+            { id: 1, name: "Gaali Subscription", category: "Therapy & Roast", price: 15, duration: "1 Month", icon: "fa-face-angry", desc: "Customized daily roasts & verbal coping mechanisms." },
+            { id: 2, name: "Corn 🌽 Subscription", category: "Gourmet Snack", price: 10, duration: "1 Month", icon: "fa-seedling", desc: "Fresh organic popcorn delivered straight to your door." },
+            { id: 3, name: "Netflix Subscription", category: "Streaming", price: 25, duration: "1 Month", icon: "fa-tv", desc: "4K Ultra HD streaming for movies and binge series." },
+            { id: 4, name: "Prime Video Subscription", category: "Streaming", price: 20, duration: "1 Month", icon: "fa-box", desc: "Movies, exclusive originals, and priority shipping." },
+            { id: 5, name: "Disney+ Hotstar", category: "Streaming", price: 18, duration: "1 Month", icon: "fa-film", desc: "Blockbusters, live sports, and family entertainment." },
+            { id: 6, name: "Spotify Premium", category: "Music", price: 12, duration: "1 Month", icon: "fa-music", desc: "Ad-free music streaming & offline downloads." },
+            { id: 7, name: "Apple Music", category: "Music", price: 12, duration: "1 Month", icon: "fa-compact-disc", desc: "Spatial audio, lossless tracks, and global radio." },
+            { id: 8, name: "YouTube Premium", category: "Video", price: 15, duration: "1 Month", icon: "fa-brands fa-youtube", desc: "Ad-free videos, background play, and YouTube Music." },
+            { id: 9, name: "Max (HBO)", category: "Streaming", price: 22, duration: "1 Month", icon: "fa-video", desc: "Prestige TV shows and legendary cinema collections." },
+            { id: 10, name: "Paramount+", category: "Streaming", price: 14, duration: "1 Month", icon: "fa-satellite-dish", desc: "Exclusive originals, live sports, and CBS shows." },
+            { id: 11, name: "Crunchyroll Mega Fan", category: "Anime", price: 12, duration: "1 Month", icon: "fa-dragon", desc: "Unlimited HD anime simulcasts straight from Japan." },
+            { id: 12, name: "Zee5 VIP", category: "Streaming", price: 10, duration: "1 Month", icon: "fa-play", desc: "Desi blockbusters and popular regional TV shows." },
+            { id: 13, name: "SonyLIV Premium", category: "Sports & TV", price: 15, duration: "1 Month", icon: "fa-trophy", desc: "Live sports, tournaments, and Sony Originals." },
+            { id: 14, name: "JioCinema VIP", category: "Streaming", price: 10, duration: "1 Month", icon: "fa-clapperboard", desc: "IPL matches, blockbuster movies, and shows." },
+            { id: 15, name: "Telegram Premium", category: "Social", price: 8, duration: "1 Month", icon: "fa-brands fa-telegram", desc: "Faster downloads, 4GB uploads, and custom emojis." },
+            { id: 16, name: "Discord Nitro", category: "Gaming & Chat", price: 10, duration: "1 Month", icon: "fa-brands fa-discord", desc: "Custom emojis, HD video streaming, and bigger files." },
+            { id: 17, name: "GitHub Copilot", category: "Developer Tools", price: 30, duration: "1 Month", icon: "fa-code", desc: "AI pair programmer to write code faster." },
+            { id: 18, name: "ChatGPT Plus", category: "AI Tools", price: 35, duration: "1 Month", icon: "fa-robot", desc: "Advanced GPT models, image generation, and data analysis." },
+            { id: 19, name: "Midjourney AI", category: "AI Tools", price: 30, duration: "1 Month", icon: "fa-wand-magic-sparkles", desc: "Unlimited state-of-the-art AI image creation." },
+            { id: 20, name: "Notion Pro", category: "Productivity", price: 15, duration: "1 Month", icon: "fa-note-sticky", desc: "Advanced workspace tools & integrated Notion AI." },
+            { id: 21, name: "Canva Pro", category: "Design", price: 15, duration: "1 Month", icon: "fa-palette", desc: "Professional graphic design templates & assets." },
+            { id: 22, name: "Duolingo Plus", category: "Education", price: 12, duration: "1 Month", icon: "fa-graduation-cap", desc: "Ad-free language learning with unlimited hearts." },
+            { id: 23, name: "LinkedIn Premium", category: "Career", price: 25, duration: "1 Month", icon: "fa-brands fa-linkedin", desc: "InMail credits, career insights, and learning courses." },
+            { id: 24, name: "Xbox Game Pass Ultimate", category: "Gaming", price: 28, duration: "1 Month", icon: "fa-brands fa-xbox", desc: "Access 100+ high-quality console & PC games." },
+            { id: 25, name: "PlayStation Plus Extra", category: "Gaming", price: 28, duration: "1 Month", icon: "fa-brands fa-playstation", desc: "Catalog of hundreds of blockbuster PS4 & PS5 games." },
+            { id: 26, name: "Steam Wallet Pass", category: "Gaming", price: 20, duration: "1 Month", icon: "fa-steam", desc: "Game voucher top-up for the Steam store." },
+            { id: 27, name: "Gym Membership Pass", category: "Fitness", price: 25, duration: "1 Month", icon: "fa-dumbbell", desc: "All-access fitness club and equipment pass." },
+            { id: 28, name: "Chai & Coffee Pass", category: "Beverage", price: 10, duration: "1 Month", icon: "fa-mug-hot", desc: "Unlimited daily caffeine fix vouchers." },
+            { id: 29, name: "Meme Museum VIP", category: "Entertainment", price: 8, duration: "1 Month", icon: "fa-face-laugh-beam", desc: "Exclusive delivery of curated dank memes every hour." },
+            { id: 30, name: "Nap-as-a-Service", category: "Wellness", price: 10, duration: "1 Month", icon: "fa-bed", desc: "Guaranteed guided 30-minute stress-free nap schedules." }
+        ];
+
+        let db;
+        let currentUser = null;
+
+        // Initialize IndexedDB
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open("SubVerseIndexedDB", 1);
+                request.onerror = (event) => reject("IndexedDB error: " + event.target.errorCode);
+                request.onsuccess = (event) => {
+                    db = event.target.result;
+                    resolve(db);
+                };
+                request.onupgradeneeded = (event) => {
+                    const dbInstance = event.target.result;
+                    if (!dbInstance.objectStoreNames.contains("userStore")) {
+                        dbInstance.createObjectStore("userStore", { keyPath: "email" });
+                    }
+                    if (!dbInstance.objectStoreNames.contains("purchasesStore")) {
+                        dbInstance.createObjectStore("purchasesStore", { keyPath: "purchaseId", autoIncrement: true });
+                    }
+                };
+            });
+        }
+
+        // Database helper operations
+        function saveUserData(userObj) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(["userStore"], "readwrite");
+                const store = transaction.objectStore("userStore");
+                const request = store.put(userObj);
+                request.onsuccess = () => resolve();
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function getUserData(email) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(["userStore"], "readonly");
+                const store = transaction.objectStore("userStore");
+                const request = store.get(email);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function addPurchaseRecord(purchaseObj) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(["purchasesStore"], "readwrite");
+                const store = transaction.objectStore("purchasesStore");
+                const request = store.add(purchaseObj);
+                request.onsuccess = (e) => resolve(e.target.result);
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        function getUserPurchases(email) {
+            return new Promise((resolve, reject) => {
+                const transaction = db.transaction(["purchasesStore"], "readonly");
+                const store = transaction.objectStore("purchasesStore");
+                const request = store.getAll();
+                request.onsuccess = (e) => {
+                    const userPurchases = e.target.result.filter(p => p.email === email);
+                    resolve(userPurchases);
+                };
+                request.onerror = (e) => reject(e);
+            });
+        }
+
+        // App Startup & Authentication Check
+        window.onload = async function() {
+            try {
+                await initDB();
+                const activeEmail = localStorage.getItem('subverse_active_email');
+                if (activeEmail) {
+                    currentUser = await getUserData(activeEmail);
+                    if (currentUser) {
+                        await checkDailyReward();
+                        document.getElementById('loginOverlay').classList.add('hidden');
+                        document.getElementById('mainApp').classList.remove('hidden');
+                        updateUI();
+                    }
+                }
+            } catch (err) {
+                console.error("Initialization failed:", err);
+            }
+            renderSubscriptions();
+        };
+
+        async function loginWithGoogle() {
+            const email = "mohiraj.user@subverse.io";
+            let user = await getUserData(email);
+            
+            if (!user) {
+                user = {
+                    email: email,
+                    name: "Mohiraj's Guest",
+                    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=MohirajDas",
+                    cc: 30,
+                    lastLoginDate: null
+                };
+            }
+
+            const today = new Date().toDateString();
+            if (user.lastLoginDate !== today) {
+                user.cc += 2.66;
+                user.lastLoginDate = today;
+            }
+
+            await saveUserData(user);
+            localStorage.setItem('subverse_active_email', email);
+            currentUser = user;
+
+            document.getElementById('loginOverlay').classList.add('hidden');
+            document.getElementById('mainApp').classList.remove('hidden');
+            updateUI();
+            renderSubscriptions();
+            showNotification("🎉 Google Login Successful! +30 CC Bonus & Daily Reward Claimed.");
+        }
+
+        async function checkDailyReward() {
+            const today = new Date().toDateString();
+            if (currentUser.lastLoginDate !== today) {
+                currentUser.cc += 2.66;
+                currentUser.lastLoginDate = today;
+                await saveUserData(currentUser);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('subverse_active_email');
+            currentUser = null;
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('mainApp').classList.add('hidden');
+            renderSubscriptions();
+        }
+
+        function updateUI() {
+            document.getElementById('userName').innerText = currentUser.name;
+            document.getElementById('userAvatar').src = currentUser.avatar;
+            document.getElementById('userCC').innerText = currentUser.cc.toFixed(2);
+        }
+
+        async function buySubscription(id) {
+            const pkg = packages.find(p => p.id === id);
+            if (currentUser.cc >= pkg.price) {
+                currentUser.cc -= pkg.price;
+                await saveUserData(currentUser);
+
+                const purchaseDate = new Date();
+                const expiryDate = new Date();
+                expiryDate.setDate(purchaseDate.getDate() + 30); // Exactly 1 month validity
+
+                const purchaseRecord = {
+                    email: currentUser.email,
+                    packageId: pkg.id,
+                    packageName: pkg.name,
+                    category: pkg.category,
+                    price: pkg.price,
+                    purchasedAt: purchaseDate.toLocaleDateString(),
+                    expiresAt: expiryDate.toLocaleDateString()
+                };
+
+                await addPurchaseRecord(purchaseRecord);
+                updateUI();
+                renderSubscriptions();
+                showNotification(`✅ Successfully subscribed to ${pkg.name} (Valid for 1 Month)!`);
+            } else {
+                showNotification(`❌ Not enough CC! You need ${pkg.price} CC.`);
+            }
+        }
+
+        async function downloadReceipt(pkgId, pkgName, price, purchasedAt, expiresAt) {
+            const receiptContent = 
+`========================================
+           SUBVERSE OFFICIAL RECEIPT
+========================================
+Subscription Name : ${pkgName}
+Account User      : ${currentUser.email}
+Price Paid        : ${price} CC
+Validity Duration : 1 Month
+Purchase Date     : ${purchasedAt}
+Expiration Date   : ${expiresAt}
+----------------------------------------
+Status            : PAID & ACTIVE
+Transaction DB    : IndexedDB Verified
+========================================
+© 2026 All rights reserved by Mohiraj Das`;
+
+            const blob = new Blob([receiptContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Receipt-${pkgName.replace(/\s+/g, '_')}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            showNotification(`📥 Receipt downloaded for ${pkgName}!`);
+        }
+
+        async function renderSubscriptions() {
+            const grid = document.getElementById('subscriptionsGrid');
+            grid.innerHTML = '';
+
+            let userPurchases = [];
+            if (currentUser) {
+                userPurchases = await getUserPurchases(currentUser.email);
+            }
+
+            packages.forEach(pkg => {
+                const purchase = userPurchases.find(p => p.packageId === pkg.id);
+                const isOwned = !!purchase;
+                const card = document.createElement('div');
+                card.className = "bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 flex flex-col justify-between transition duration-200 shadow-sm hover:shadow-md";
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center text-lg">
+                                <i class="fa-solid ${pkg.icon}"></i>
+                            </div>
+                            <span class="text-xs bg-slate-800 text-slate-300 font-medium px-2.5 py-1 rounded-lg">1 Month Validity</span>
+                        </div>
+                        <span class="text-xs font-semibold text-brand-400 uppercase tracking-wider">${pkg.category}</span>
+                        <h3 class="text-lg font-bold text-white mt-1 mb-2">${pkg.name}</h3>
+                        <p class="text-slate-400 text-xs line-clamp-2 mb-4">${pkg.desc}</p>
+                        ${isOwned ? `<div class="text-[11px] text-emerald-400 mb-3 bg-emerald-950/40 border border-emerald-900/50 p-2 rounded-lg">Expires: ${purchase.expiresAt}</div>` : ''}
+                    </div>
+                    <div class="pt-4 border-t border-slate-800/60 flex items-center justify-between">
+                        <div>
+                            <div class="text-[10px] text-slate-500 uppercase font-medium">Price</div>
+                            <div class="text-amber-400 font-bold text-base flex items-center gap-1">
+                                <i class="fa-solid fa-coins text-xs"></i> ${pkg.price} CC
+                            </div>
+                        </div>
+                        ${isOwned 
+                            ? `<button onclick="downloadReceipt(${pkg.packageId}, '${purchase.packageName}', ${purchase.price}, '${purchase.purchasedAt}', '${purchase.expiresAt}')" class="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold px-3 py-2.5 rounded-xl transition shadow-lg shadow-emerald-600/20 flex items-center gap-1.5"><i class="fa-solid fa-download"></i> Receipt</button>`
+                            : `<button onclick="buySubscription(${pkg.id})" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-lg shadow-brand-600/20">Buy Now</button>`
+                        }
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function showNotification(message) {
+            const toast = document.createElement('div');
+            toast.className = "fixed bottom-5 right-5 bg-slate-900 border border-slate-700 text-white px-5 py-3 rounded-xl shadow-2xl z-50 text-sm flex items-center gap-3 animate-bounce";
+            toast.innerHTML = `<i class="fa-solid fa-bell text-brand-400"></i> ${message}`;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+    </script>
+</body>
+</html>
